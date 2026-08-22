@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RecoveryOS
 
-## Getting Started
+**AI Revenue Recovery Engine**  
+*Built for Hackathon Track 03: Find revenue that's slipping away and win it back.*
 
-First, run the development server:
+RecoveryOS is an autonomous agentic collections system that closes the loop on lost revenue. Instead of a fragile, monolithic LLM prompt, it utilizes a deterministic dual-pipeline architecture to detect revenue at risk, compute a recovery strategy, run it through strict compliance guardrails, and execute the action—all while maintaining an immutable audit ledger.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🏗 Architecture
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+RecoveryOS abandons the "black-box AI" approach in favor of a strictly bounded, enterprise-ready state machine. 
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Dual-Pipeline Execution**: Two independent state machines run in parallel. The Payment Pipeline resolves fast-moving issues in minutes (failed charges, timeouts, abandoned checkouts), while the Receivables Pipeline manages slow-moving B2B cycles over days (chaser-and-promise cycles).
+- **Deterministic Strategy Engine**: A pure-function scoring system evaluates failure reasons, historical success rates, and attempt counts to assign the optimal intervention (`AUTO_RETRY`, `SMART_PAYMENT_LINK`, `WHATSAPP_REMINDER`).
+- **Shared Guardrail Layer**: The most critical component. Every action from both pipelines funnels through a unified compliance engine that enforces stopping rules (e.g., `MAX_RETRIES`, `CONTACT_COOLDOWN`, `OPT_OUT`). It actively prevents cross-pipeline spam (e.g., stopping a WhatsApp invoice chaser if the payment pipeline just emailed the customer 10 minutes ago).
+- **Immutable Audit Ledger**: Every decision, including the input telemetry, guardrail execution results, and final output, is permanently logged to an append-only ledger for enterprise compliance.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 The Dashboard
 
-## Learn More
+The UI is built as a premium, high-contrast command center (with seamless Light/Dark mode).
+- **Summary**: Live tracking of Revenue at Risk, Capital Recovered (Yield %), and Guardrail Interceptions.
+- **Transactions Ledger**: A complete view of every event moving through the system.
+- **Drill-Down**: A terminal-style node graph showing exactly *why* the engine made a decision, complete with glowing indicators for blocked actions.
 
-To learn more about Next.js, take a look at the following resources:
+## 💻 Tech Stack
+- **Framework**: Next.js (App Router)
+- **Styling**: Tailwind CSS, Framer Motion (Spring Physics)
+- **Database**: SQLite + Drizzle ORM
+- **Icons**: Phosphor Icons
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ⚙️ Running Locally
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Install Dependencies**
+   \`\`\`bash
+   npm install
+   \`\`\`
 
-## Deploy on Vercel
+2. **Initialize Database & Start Server**
+   \`\`\`bash
+   npm run dev
+   \`\`\`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Run the Demo Loop**
+   - Open \`http://localhost:3000/dashboard\`
+   - Click the **Database Icon** in the top navigation bar to wipe the DB and seed the edge-case synthetic data.
+   - Click **Run Pipelines** to execute the batch processing. Watch the recovery yield and guardrail blocks update dynamically!
+   - Click into any blocked transaction (e.g., \`tx_retry_cap\`) to view the Audit Ledger drill-down.

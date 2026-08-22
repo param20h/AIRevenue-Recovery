@@ -5,6 +5,52 @@ import { sql } from 'drizzle-orm';
 
 export async function POST() {
   try {
+    // Make sure tables exist for serverless Vercel environments that use /tmp
+    db.run(sql`
+      CREATE TABLE IF NOT EXISTS customers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT,
+        opt_out INTEGER NOT NULL DEFAULT 0,
+        prior_successful_payments INTEGER NOT NULL DEFAULT 0,
+        last_contact_at INTEGER,
+        daily_contact_count INTEGER NOT NULL DEFAULT 0,
+        contact_count_reset_at INTEGER
+      );
+    `);
+    
+    db.run(sql`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        customer_id TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'INR',
+        failure_reason TEXT,
+        status TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        due_date INTEGER
+      );
+    `);
+    
+    db.run(sql`
+      CREATE TABLE IF NOT EXISTS agent_decisions (
+        id TEXT PRIMARY KEY,
+        transaction_id TEXT NOT NULL,
+        pipeline TEXT NOT NULL,
+        state_from TEXT NOT NULL,
+        state_to TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        input_signals TEXT,
+        guardrail_results TEXT,
+        action_taken TEXT,
+        action_blocked INTEGER NOT NULL DEFAULT 0,
+        block_reason TEXT,
+        outcome TEXT
+      );
+    `);
+
     // Clear existing data
     db.run(sql`DELETE FROM agent_decisions`);
     db.run(sql`DELETE FROM transactions`);
