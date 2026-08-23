@@ -6,16 +6,26 @@ import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    let allTxs = await db.query.transactions.findMany();
-    
-    // Hackathon failsafe: If the ephemeral Vercel DB is completely empty, auto-seed it!
-    if (allTxs.length === 0 && process.env.VERCEL === '1') {
-      const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-      await fetch(`${host}/api/reset`, { method: 'POST' }).catch(() => {});
-      allTxs = await db.query.transactions.findMany();
-    }
+    let allTxs: any[] = [];
+    let allAudits: any[] = [];
 
-    const allAudits = await db.query.agentDecisions.findMany();
+    try {
+      allTxs = await db.query.transactions.findMany();
+      allAudits = await db.query.agentDecisions.findMany();
+    } catch (e: any) {
+      // If tables don't exist yet, just return 0s so the dashboard loads cleanly!
+      if (e.message && e.message.includes('no such table')) {
+        return NextResponse.json({
+          revenueAtRisk: 0,
+          recovered: 0,
+          recoveryRate: 0,
+          pipelineSplit: { payment: 0, receivables: 0 },
+          guardrailBlocks: 0,
+          requiresReset: true
+        });
+      }
+      throw e;
+    }
 
     const pendingOrFailed = allTxs.filter(t => t.status === 'failed' || t.status === 'pending' || t.status === 'overdue');
     const revenueAtRisk = pendingOrFailed.reduce((sum, t) => sum + t.amount, 0) / 100;
