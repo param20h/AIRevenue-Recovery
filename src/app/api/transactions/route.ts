@@ -27,20 +27,28 @@ export async function GET(req: Request) {
     txs = txs.filter(t => t.type === type);
   }
 
-  // Fetch all agent decisions to compute the blocked flag per transaction
+  // Fetch all agent decisions to compute the blocked flag + block reason per transaction
   const decisions = await db.select({
     transactionId: agentDecisions.transactionId,
     actionBlocked: agentDecisions.actionBlocked,
-  }).from(agentDecisions);
+    blockReason: agentDecisions.blockReason,
+    actionTaken: agentDecisions.actionTaken,
+    timestamp: agentDecisions.timestamp,
+  }).from(agentDecisions).orderBy(desc(agentDecisions.timestamp));
 
-  // Build a set of blocked transaction IDs
-  const blockedTxIds = new Set(
-    decisions.filter(d => d.actionBlocked).map(d => d.transactionId)
-  );
+  // For each tx, find the most recent blocked decision
+  const blockedMap = new Map<string, { blockReason: string | null, actionTaken: string | null }>();
+  for (const d of decisions) {
+    if (d.actionBlocked && !blockedMap.has(d.transactionId)) {
+      blockedMap.set(d.transactionId, { blockReason: d.blockReason, actionTaken: d.actionTaken });
+    }
+  }
 
   const enriched = txs.map(tx => ({
     ...tx,
-    blocked: blockedTxIds.has(tx.id),
+    blocked: blockedMap.has(tx.id),
+    blockReason: blockedMap.get(tx.id)?.blockReason ?? null,
+    blockedAction: blockedMap.get(tx.id)?.actionTaken ?? null,
   }));
 
   return NextResponse.json({ transactions: enriched });

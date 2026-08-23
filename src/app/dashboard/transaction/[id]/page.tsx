@@ -82,7 +82,11 @@ export default function TransactionDrillDown({ params }: { params: Promise<{ id:
               </div>
               <div className="col-span-2 md:col-span-1">
                 <p className="text-[10px] font-semibold text-black/40 dark:text-white/30 uppercase tracking-[0.2em] mb-2">Customer</p>
-                <p className="text-xl font-medium">{tx.customerName}</p>
+                <p className="text-xl font-medium">
+                  <Link href={`/dashboard/customer/${tx.customerId}`} className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline underline-offset-4 transition-colors">
+                    {tx.customerName}
+                  </Link>
+                </p>
               </div>
               <div className="col-span-2 md:col-span-1">
                 <p className="text-[10px] font-semibold text-black/40 dark:text-white/30 uppercase tracking-[0.2em] mb-2">Amount</p>
