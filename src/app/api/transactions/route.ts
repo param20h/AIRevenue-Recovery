@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { db } from '../../../db/client';
-import { transactions, customers } from '../../../db/schema';
+import { transactions, customers, agentDecisions } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 
 export async function GET(req: Request) {
@@ -27,5 +27,21 @@ export async function GET(req: Request) {
     txs = txs.filter(t => t.type === type);
   }
 
-  return NextResponse.json({ transactions: txs });
+  // Fetch all agent decisions to compute the blocked flag per transaction
+  const decisions = await db.select({
+    transactionId: agentDecisions.transactionId,
+    actionBlocked: agentDecisions.actionBlocked,
+  }).from(agentDecisions);
+
+  // Build a set of blocked transaction IDs
+  const blockedTxIds = new Set(
+    decisions.filter(d => d.actionBlocked).map(d => d.transactionId)
+  );
+
+  const enriched = txs.map(tx => ({
+    ...tx,
+    blocked: blockedTxIds.has(tx.id),
+  }));
+
+  return NextResponse.json({ transactions: enriched });
 }

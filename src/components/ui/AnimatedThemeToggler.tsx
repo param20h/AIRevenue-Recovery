@@ -1,68 +1,69 @@
 "use client";
 
-import { motion } from "framer-motion";
 import React from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export function AnimatedThemeToggler({ isDark, onToggle }: { isDark: boolean, onToggle: (dark: boolean) => void }) {
-  const toggleTheme = (e: React.MouseEvent) => {
-    const x = e.clientX;
-    const y = e.clientY;
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
+interface AnimatedThemeTogglerProps {
+  className?: string;
+  duration?: number;
+  variant?: "circle" | "swipe";
+  fromCenter?: boolean;
+  theme: "light" | "dark";
+  onThemeChange: (theme: "light" | "dark") => void;
+}
 
-    // If browser doesn't support View Transitions
-    if (!(document as any).startViewTransition) {
-      onToggle(!isDark);
-      return;
+export const AnimatedThemeToggler = ({
+  className,
+  duration = 550,
+  variant = "circle",
+  fromCenter = false,
+  theme,
+  onThemeChange,
+}: AnimatedThemeTogglerProps) => {
+  const isDark = theme === "dark";
+
+  const handleToggle = () => {
+    const nextTheme = isDark ? "light" : "dark";
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
-
-    const transition = (document as any).startViewTransition(() => {
-      onToggle(!isDark);
-    });
-
-    transition.ready.then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${endRadius}px at ${x}px ${y}px)`
-          ]
-        },
-        {
-          duration: 700,
-          easing: "cubic-bezier(0.32, 0.72, 0, 1)",
-          pseudoElement: "::view-transition-new(root)"
-        }
-      );
-    });
+    onThemeChange(nextTheme);
   };
 
-  const properties = {
-    sun: {
-      r: 9,
-      transform: "rotate(40deg)",
-      cx: 12,
-      cy: 4,
-      opacity: 0
-    },
-    moon: {
-      r: 5,
-      transform: "rotate(90deg)",
-      cx: 30,
-      cy: 0,
-      opacity: 1
-    },
-    springConfig: { mass: 4, tension: 250, friction: 35 }
+  // SVG morph variants
+  const svgVariants = {
+    dark: { rotate: 40 },
+    light: { rotate: 90 },
   };
 
-  const { r, transform, cx, cy, opacity } = isDark ? properties.moon : properties.sun;
+  const centerCircleVariants = {
+    dark: { r: 9 },
+    light: { r: 5 },
+  };
+
+  const centerMaskVariants = {
+    dark: { cx: 12, cy: 4 },
+    light: { cx: 30, cy: 0 },
+  };
+
+  const rayVariants = {
+    dark: { scale: 0, opacity: 0 },
+    light: { scale: 1, opacity: 1 },
+  };
 
   return (
     <button
-      onClick={toggleTheme}
-      className="p-1 rounded-full hover:bg-current/10 transition-colors outline-none"
+      onClick={handleToggle}
+      className={cn(
+        "relative h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-300",
+        "bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10",
+        "border border-slate-200 dark:border-white/10",
+        "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white",
+        className
+      )}
       aria-label="Toggle Theme"
     >
       <motion.svg
@@ -75,45 +76,103 @@ export function AnimatedThemeToggler({ isDark, onToggle }: { isDark: boolean, on
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        initial={false}
-        animate={{ transform }}
-        transition={properties.springConfig as any}
+        animate={isDark ? "dark" : "light"}
+        variants={svgVariants}
+        transition={{ type: "spring", stiffness: 200, damping: 15 }}
+        className="relative z-10 pointer-events-none"
       >
-        <mask id="moon-mask">
-          <rect x="0" y="0" width="100%" height="100%" fill="white" />
+        <mask id="theme-mask">
+          <rect x="0" y="0" width="24" height="24" fill="white" />
           <motion.circle
-            initial={false}
-            animate={{ cx, cy }}
-            transition={properties.springConfig as any}
+            cx="12"
+            cy="4"
             r="9"
             fill="black"
+            animate={isDark ? "dark" : "light"}
+            variants={centerMaskVariants}
+            transition={{ type: "spring", stiffness: 180, damping: 14 }}
           />
         </mask>
-        
+
         <motion.circle
           cx="12"
           cy="12"
-          initial={false}
-          animate={{ r }}
-          transition={properties.springConfig as any}
-          mask="url(#moon-mask)" fill="currentColor" stroke="none"
+          r="9"
+          fill="currentColor"
+          mask="url(#theme-mask)"
+          animate={isDark ? "dark" : "light"}
+          variants={centerCircleVariants}
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
         />
-        
-        <motion.g
-          initial={false}
-          animate={{ opacity }}
-          transition={properties.springConfig as any}
-        >
-          <path d="M12 2v2" />
-          <path d="M12 20v2" />
-          <path d="M4.93 4.93l1.41 1.41" />
-          <path d="M17.66 17.66l1.41 1.41" />
-          <path d="M2 12h2" />
-          <path d="M20 12h2" />
-          <path d="M6.34 17.66l-1.41 1.41" />
-          <path d="M19.07 4.93l-1.41 1.41" />
-        </motion.g>
+
+        {/* Sun rays */}
+        <g stroke="currentColor">
+          <motion.line
+            x1="12"
+            y1="1"
+            x2="12"
+            y2="3"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="12"
+            y1="21"
+            x2="12"
+            y2="23"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="4.22"
+            y1="4.22"
+            x2="5.64"
+            y2="5.64"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="18.36"
+            y1="18.36"
+            x2="19.78"
+            y2="19.78"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="1"
+            y1="12"
+            x2="3"
+            y2="12"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="21"
+            y1="12"
+            x2="23"
+            y2="12"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="4.22"
+            y1="19.78"
+            x2="5.64"
+            y2="18.36"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+          <motion.line
+            x1="18.36"
+            y1="5.64"
+            x2="19.78"
+            y2="4.22"
+            variants={rayVariants}
+            transition={{ type: "spring", stiffness: 150, damping: 15 }}
+          />
+        </g>
       </motion.svg>
     </button>
   );
-}
+};

@@ -1,75 +1,116 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { DoubleBezelCard } from "../../../components/ui/DoubleBezelCard";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { ShieldWarning } from "@phosphor-icons/react";
-import { useSearchParams } from "next/navigation";
+import { Warning, CheckCircle, ClockCounterClockwise, ShieldWarning, CircleNotch } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 
-function TransactionsList() {
-  const searchParams = useSearchParams();
-  const filterBlocked = searchParams.get('blocked') === 'true';
+export default function TransactionsList() {
   const [txs, setTxs] = useState<any[]>([]);
-  const [audits, setAudits] = useState<any[]>([]);
+  const [showBlockedOnly, setShowBlockedOnly] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/transactions").then(r => r.json()).then(d => setTxs(d.transactions));
-    fetch("/api/audit").then(r => r.json()).then(d => setAudits(d.audits));
+    // We check URL params for ?blocked=true to auto-filter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('blocked') === 'true') {
+      setShowBlockedOnly(true);
+    }
+
+    fetch("/api/transactions")
+      .then(r => r.json())
+      .then(data => setTxs(Array.isArray(data) ? data : (data.transactions ?? [])))
+      .catch(() => setTxs([]));
   }, []);
 
-  const blockedTxIds = new Set(audits.filter(a => a.actionBlocked).map(a => a.transactionId));
-  const filteredTxs = filterBlocked ? txs.filter(t => blockedTxIds.has(t.id)) : txs;
+  if (txs.length === 0) return (
+    <div className="h-[60vh] flex flex-col items-center justify-center text-black/40 dark:text-white/40 gap-4">
+       <CircleNotch className="animate-spin text-black/20 dark:text-white/20" size={32} />
+       <span className="font-mono text-xs tracking-widest uppercase">Fetching Ledger...</span>
+    </div>
+  );
+
+  const filtered = showBlockedOnly ? txs.filter(t => t.blocked) : txs;
+
+  const getStatusIcon = (status: string, blocked: boolean) => {
+    if (blocked) return <ShieldWarning size={16} className="text-amber-500" weight="fill" />;
+    if (status === 'closed' || status === 'recovered') return <CheckCircle size={16} className="text-emerald-500" weight="fill" />;
+    if (status === 'pending') return <ClockCounterClockwise size={16} className="text-blue-500" />;
+    return <Warning size={16} className="text-rose-500" weight="fill" />;
+  };
+
+  const getStatusDisplay = (status: string, blocked: boolean) => {
+    if (blocked) return "BLOCKED";
+    if (status === 'failed') return "FAILED";
+    if (status === 'overdue') return "OVERDUE";
+    if (status === 'pending') return "PENDING";
+    if (status === 'recovered') return "RECOVERED";
+    if (status === 'closed') return "CLOSED";
+    return status.toUpperCase();
+  };
+
+  const getStatusColors = (status: string, blocked: boolean) => {
+    if (blocked) return 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+    if (status === 'closed' || status === 'recovered') return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+    if (status === 'failed') return 'bg-rose-500/10 text-rose-700 dark:text-rose-400';
+    if (status === 'overdue') return 'bg-orange-500/10 text-orange-700 dark:text-orange-400';
+    if (status === 'pending') return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
+    return 'bg-black/5 text-black/60 dark:bg-white/5 dark:text-white/60';
+  };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-10 pb-24">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-4">
-          <h1 className="text-5xl font-medium tracking-tight text-black dark:text-white">Transactions</h1>
-          <p className="text-black/60 dark:text-white/40 max-w-xl">Every payment event and invoice processed through the dual-pipeline state machine.</p>
+          <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-5xl md:text-7xl font-light tracking-tight text-black dark:text-white">Ledger</motion.h1>
         </div>
-        <div className="flex gap-4">
-          <Link href="/dashboard/transactions" className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${!filterBlocked ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-black/5 text-black hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20'}`}>
-            All
-          </Link>
-          <Link href="/dashboard/transactions?blocked=true" className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${filterBlocked ? 'bg-amber-500 text-white dark:text-black' : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-500'}`}>
-            <ShieldWarning size={16} />
+        
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowBlockedOnly(false)}
+            className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-colors ${!showBlockedOnly ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-black/5 text-black/50 hover:bg-black/10 dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10'}`}
+          >
+            All Events
+          </button>
+          <button 
+            onClick={() => setShowBlockedOnly(true)}
+            className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-colors flex items-center gap-2 ${showBlockedOnly ? 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20' : 'bg-black/5 text-black/50 hover:bg-black/10 dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10'}`}
+          >
+            <ShieldWarning size={14} weight="fill" />
             Guardrail Blocks
-          </Link>
+          </button>
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}>
-        <DoubleBezelCard innerClassName="p-2">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <DoubleBezelCard innerClassName="p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-black/10 dark:border-white/10 text-xs uppercase tracking-wider text-black/50 dark:text-white/40">
-                  <th className="p-4 font-medium">Tx ID</th>
-                  <th className="p-4 font-medium">Type</th>
-                  <th className="p-4 font-medium">Customer</th>
-                  <th className="p-4 font-medium">Failure Reason</th>
-                  <th className="p-4 font-medium">Status</th>
-                  <th className="p-4 font-medium text-right">Amount</th>
+                <tr className="border-b border-black/10 dark:border-white/10 text-[10px] uppercase tracking-[0.2em] font-semibold text-black/40 dark:text-white/40">
+                  <th className="p-6 font-semibold">Tx ID</th>
+                  <th className="p-6 font-semibold">Type</th>
+                  <th className="p-6 font-semibold">Customer</th>
+                  <th className="p-6 font-semibold">Failure Reason</th>
+                  <th className="p-6 font-semibold">Status</th>
+                  <th className="p-6 font-semibold text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="text-sm text-black dark:text-white">
-                {filteredTxs.map(tx => (
-                  <tr key={tx.id} className="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer" onClick={() => window.location.href = `/dashboard/transaction/${tx.id}`}>
-                    <td className="p-4 font-mono text-black/60 dark:text-white/60">{tx.id.split('_').pop()}</td>
-                    <td className="p-4 capitalize">{tx.type}</td>
-                    <td className="p-4 font-medium">{tx.customerName}</td>
-                    <td className="p-4 text-black/60 dark:text-white/60">{tx.failureReason?.replace('_', ' ')}</td>
-                    <td className="p-4">
-                      {blockedTxIds.has(tx.id) ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-500 text-xs font-medium border border-amber-500/20">
-                          <ShieldWarning size={14} /> BLOCKED
-                        </span>
-                      ) : (
-                        <span className="capitalize text-black/60 dark:text-white/60">{tx.status}</span>
-                      )}
+              <tbody className="text-sm">
+                {filtered.map((tx) => (
+                  <tr key={tx.id} className="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer text-black dark:text-white" onClick={() => router.push(`/dashboard/transaction/${tx.id}`)}>
+                    <td className="p-6 font-mono opacity-60 group-hover:opacity-100 transition-opacity">{tx.id.split('_').pop()}</td>
+                    <td className="p-6 capitalize opacity-80">{tx.type}</td>
+                    <td className="p-6">{tx.customerName}</td>
+                    <td className="p-6 capitalize opacity-60">{tx.failureReason?.replace('_', ' ')}</td>
+                    <td className="p-6">
+                      <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold ${getStatusColors(tx.status, tx.blocked)}`}>
+                        {getStatusIcon(tx.status, tx.blocked)}
+                        {getStatusDisplay(tx.status, tx.blocked)}
+                      </div>
                     </td>
-                    <td className="p-4 text-right font-medium">{(tx.amount / 100).toFixed(2)} {tx.currency}</td>
+                    <td className="p-6 text-right font-mono opacity-80">{(tx.amount / 100).toFixed(2)} {tx.currency}</td>
                   </tr>
                 ))}
               </tbody>
@@ -78,13 +119,5 @@ function TransactionsList() {
         </DoubleBezelCard>
       </motion.div>
     </div>
-  );
-}
-
-export default function TransactionsDashboard() {
-  return (
-    <Suspense fallback={<div className="animate-pulse h-[60vh] flex items-center justify-center text-black/40 dark:text-white/40">Loading Transactions...</div>}>
-      <TransactionsList />
-    </Suspense>
   );
 }

@@ -51,38 +51,36 @@ export default function SummaryDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-8 gap-6 auto-rows-[220px]">
         
-        {/* Revenue at Risk - Large Inverted Card (Always dark) */}
+        {/* Revenue at Risk - Large Dynamic Card */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }} className="md:col-span-5 md:row-span-2">
-          <div className="h-full rounded-[2rem] p-1.5 ring-1 shadow-2xl transition-colors duration-500 bg-[#111] ring-[#222]">
-            <div className="rounded-[calc(2rem-0.375rem)] h-full w-full p-10 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-[#0A0A0A] to-[#050505] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-white">
-              <div className="absolute -top-10 -right-10 p-10 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
-                <CurrencyInr size={300} weight="thin" />
-              </div>
-              
-              <div>
-                <p className="text-[10px] font-semibold text-white/40 tracking-[0.2em] uppercase mb-4">Revenue at Risk</p>
-                <div className="relative">
-                  <p className="text-6xl md:text-8xl font-light tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">{formatCurrency(data.revenueAtRisk)}</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 z-10">
-                <div className="text-xs font-mono text-white/40">
-                  Tracking <span className="text-white/80">{data.pipelineSplit.payment + data.pipelineSplit.receivables}</span> active cases across pipelines
-                </div>
-                <button 
-                  onClick={handleRunPipelines}
-                  disabled={isRunning}
-                  className="group/btn relative rounded-full pl-6 pr-2 py-2 bg-white text-black hover:bg-white/90 transition-all flex items-center gap-4 text-sm font-semibold active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)]"
-                >
-                  {isRunning ? "Executing..." : "Run Pipelines"}
-                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-all group-hover/btn:bg-black/20 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-[1px]">
-                    {isRunning ? <CircleNotch size={14} className="animate-spin text-black" /> : <ArrowUpRight size={14} className="text-black" />}
-                  </div>
-                </button>
+          <DoubleBezelCard innerClassName="p-10 flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute -top-10 -right-10 p-10 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none text-black dark:text-white">
+              <CurrencyInr size={300} weight="thin" />
+            </div>
+            
+            <div>
+              <p className="text-[10px] font-semibold text-black/40 dark:text-white/40 tracking-[0.2em] uppercase mb-4">Revenue at Risk</p>
+              <div className="relative">
+                <p className="text-6xl md:text-8xl font-light tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-black to-black/60 dark:from-white dark:to-white/60">{formatCurrency(data.revenueAtRisk)}</p>
               </div>
             </div>
-          </div>
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 z-10">
+              <div className="text-xs font-mono text-black/40 dark:text-white/40">
+                Tracking <span className="text-black/80 dark:text-white/80">{data.pipelineSplit.payment + data.pipelineSplit.receivables}</span> active cases across pipelines
+              </div>
+              <button 
+                onClick={handleRunPipelines}
+                disabled={isRunning}
+                className="group/btn relative rounded-full pl-6 pr-2 py-2 bg-black text-white dark:bg-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 transition-all flex items-center gap-4 text-sm font-semibold active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none shadow-xl"
+              >
+                {isRunning ? "Executing..." : "Run Pipelines"}
+                <div className="w-8 h-8 rounded-full bg-white/10 dark:bg-black/10 flex items-center justify-center transition-all group-hover/btn:bg-white/20 dark:group-hover/btn:bg-black/20 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-[1px]">
+                  {isRunning ? <CircleNotch size={14} className="animate-spin text-white dark:text-black" /> : <ArrowUpRight size={14} className="text-white dark:text-black" />}
+                </div>
+              </button>
+            </div>
+          </DoubleBezelCard>
         </motion.div>
 
         {/* Guardrail Blocks - Dynamic Card */}

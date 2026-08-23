@@ -128,17 +128,13 @@ export default function TransactionDrillDown({ params }: { params: Promise<{ id:
         {/* Right Col: Audit Log */}
         <div className="lg:col-span-7">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="h-full">
-            {/* 
-              Force dark mode styles on this specific panel by appending it with hardcoded colors
-              so it always looks like a hacker terminal regardless of light/dark mode! 
-            */}
-            <DoubleBezelCard innerClassName="p-1 md:p-2 h-full min-h-[600px] flex flex-col bg-[#050505]">
-              <div className="p-6 pb-4 border-b border-white/5 flex items-center justify-between sticky top-0 bg-[#050505] z-10 rounded-t-[calc(2rem-0.5rem)]">
-                <div className="flex items-center gap-3 text-xs font-semibold text-white/50 tracking-[0.2em] uppercase">
-                  <Robot size={18} className="text-white" />
-                  <span className="text-white">Immutable Audit Ledger</span>
+            <DoubleBezelCard innerClassName="p-1 md:p-2 h-full min-h-[600px] flex flex-col bg-gray-50 dark:bg-[#050505]">
+              <div className="p-6 pb-4 border-b border-black/10 dark:border-white/5 flex items-center justify-between sticky top-0 bg-gray-50 dark:bg-[#050505] z-10 rounded-t-[calc(2rem-0.5rem)]">
+                <div className="flex items-center gap-3 text-xs font-semibold text-black/50 dark:text-white/50 tracking-[0.2em] uppercase">
+                  <Robot size={18} className="text-black dark:text-white" />
+                  <span className="text-black dark:text-white">Immutable Audit Ledger</span>
                 </div>
-                <div className="text-[10px] text-white/30 font-mono tracking-widest uppercase">System Gen</div>
+                <div className="text-[10px] text-black/30 dark:text-white/30 font-mono tracking-widest uppercase">System Gen</div>
               </div>
               
               <div className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
@@ -146,33 +142,32 @@ export default function TransactionDrillDown({ params }: { params: Promise<{ id:
                   <motion.div 
                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 + (idx * 0.1), ease: [0.32, 0.72, 0, 1] }} 
                     key={audit.id} 
-                    className={`relative p-6 rounded-2xl border backdrop-blur-sm overflow-hidden ${
+                    className={`relative p-6 rounded-2xl border overflow-hidden ${
                       audit.actionBlocked 
-                        ? 'bg-amber-950/10 border-amber-500/30 ring-1 ring-amber-500/20' 
-                        : 'bg-white/[0.02] border-white/10'
+                        ? 'bg-amber-50 dark:bg-amber-950/10 border-amber-300 dark:border-amber-500/30 ring-1 ring-amber-200 dark:ring-amber-500/20' 
+                        : 'bg-white dark:bg-white/[0.02] border-black/10 dark:border-white/10'
                     }`}
                   >
-                    {/* Subtle background glow for blocked */}
                     {audit.actionBlocked && (
                       <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
                     )}
 
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-8 relative z-10">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-white/40 font-mono bg-black/40 px-2 py-1 rounded-md border border-white/5">
+                        <span className="text-xs text-black/50 dark:text-white/40 font-mono bg-black/5 dark:bg-black/40 px-2 py-1 rounded-md border border-black/10 dark:border-white/5">
                           {new Date(audit.timestamp).toISOString().split('T')[1].slice(0,8)}
                         </span>
-                        <span className="text-[10px] font-semibold text-white/50 uppercase tracking-widest flex items-center gap-1.5">
-                          {audit.stateFrom} <CaretRight size={10} weight="bold" className="text-white/20"/> {audit.stateTo}
+                        <span className="text-[10px] font-semibold text-black/40 dark:text-white/50 uppercase tracking-widest flex items-center gap-1.5">
+                          {audit.stateFrom} <CaretRight size={10} weight="bold" className="text-black/20 dark:text-white/20"/> {audit.stateTo}
                         </span>
                       </div>
                       
                       {audit.actionBlocked ? (
-                        <div className="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold rounded-full tracking-wide inline-flex items-center gap-1.5 border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                        <div className="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-full tracking-wide inline-flex items-center gap-1.5 border border-amber-500/20">
                           <ShieldWarning weight="fill" size={14} /> ACTION BLOCKED
                         </div>
                       ) : (
-                        <div className="text-xs text-emerald-400 border border-emerald-400/20 px-3 py-1 rounded-full bg-emerald-400/10 inline-flex items-center gap-1.5">
+                        <div className="text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-400/30 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-400/10 inline-flex items-center gap-1.5">
                           <CheckCircle weight="fill" size={14} /> CLEARANCE GRANTED
                         </div>
                       )}
@@ -181,9 +176,9 @@ export default function TransactionDrillDown({ params }: { params: Promise<{ id:
                     <div className="space-y-8 relative z-10">
                       {/* Inputs */}
                       <div>
-                        <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-3">Telemetry / Context</p>
-                        <div className="bg-[#020202] border border-white/5 p-4 rounded-xl">
-                          <pre className="text-xs font-mono text-white/60 overflow-x-auto leading-relaxed">
+                        <p className="text-[10px] font-semibold text-black/40 dark:text-white/30 uppercase tracking-[0.2em] mb-3">Telemetry / Context</p>
+                        <div className="bg-gray-100 dark:bg-[#020202] border border-black/10 dark:border-white/5 p-4 rounded-xl">
+                          <pre className="text-xs font-mono text-black/70 dark:text-white/60 overflow-x-auto leading-relaxed">
                             {JSON.stringify(JSON.parse(audit.inputSignals || '{}'), null, 2)}
                           </pre>
                         </div>
@@ -191,18 +186,20 @@ export default function TransactionDrillDown({ params }: { params: Promise<{ id:
 
                       {/* Guardrails */}
                       <div>
-                        <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-3">Guardrail Execution</p>
+                        <p className="text-[10px] font-semibold text-black/40 dark:text-white/30 uppercase tracking-[0.2em] mb-3">Guardrail Execution</p>
                         <div className="grid grid-cols-1 gap-2">
                           {JSON.parse(audit.guardrailResults || '[]').map((r: any) => (
                             <div key={r.rule} className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
-                              r.passed ? 'bg-white/[0.02] text-white/60' : 'bg-amber-500/5 text-amber-400 border border-amber-500/20'
+                              r.passed 
+                                ? 'bg-black/[0.02] dark:bg-white/[0.02] text-black/60 dark:text-white/60' 
+                                : 'bg-amber-50 dark:bg-amber-500/5 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
                             }`}>
                               <div className="mt-0.5">
-                                {r.passed ? <CheckCircle className="text-emerald-500/50" weight="fill" /> : <XCircle className="text-amber-500" weight="fill" />}
+                                {r.passed ? <CheckCircle className="text-emerald-500" weight="fill" /> : <XCircle className="text-amber-500" weight="fill" />}
                               </div>
                               <div>
-                                <p className="font-mono text-xs text-white">{r.rule}</p>
-                                {!r.passed && <p className="opacity-80 mt-1.5 text-xs leading-relaxed max-w-md text-white">{r.reason}</p>}
+                                <p className="font-mono text-xs text-black dark:text-white">{r.rule}</p>
+                                {!r.passed && <p className="opacity-80 mt-1.5 text-xs leading-relaxed max-w-md">{r.reason}</p>}
                               </div>
                             </div>
                           ))}
@@ -210,19 +207,16 @@ export default function TransactionDrillDown({ params }: { params: Promise<{ id:
                       </div>
 
                       {/* Action */}
-                      <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em]">Strategy Output</p>
-                        {/* We use the same ActionBadge but force dark mode properties because it's in the terminal */}
-                        <div className="[&_span]:!bg-white/5 [&_span]:!border-white/10 [&_span]:!text-white/80">
-                          <ActionBadge action={audit.actionTaken} blocked={audit.actionBlocked} />
-                        </div>
+                      <div className="pt-6 border-t border-black/10 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <p className="text-[10px] font-semibold text-black/40 dark:text-white/30 uppercase tracking-[0.2em]">Strategy Output</p>
+                        <ActionBadge action={audit.actionTaken} blocked={audit.actionBlocked} />
                       </div>
                     </div>
                   </motion.div>
                 ))}
                 
                 {audits.length === 0 && (
-                  <div className="text-center text-white/30 py-12 text-sm font-mono">No telemetry found.</div>
+                  <div className="text-center text-black/30 dark:text-white/30 py-12 text-sm font-mono">No telemetry found.</div>
                 )}
               </div>
             </DoubleBezelCard>
