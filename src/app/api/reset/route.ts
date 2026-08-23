@@ -7,7 +7,7 @@ import { sql } from 'drizzle-orm';
 export async function POST() {
   try {
     // Make sure tables exist for serverless Vercel environments that use /tmp
-    db.run(sql`
+    await db.run(sql`
       CREATE TABLE IF NOT EXISTS customers (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -21,7 +21,7 @@ export async function POST() {
       );
     `);
     
-    db.run(sql`
+    await db.run(sql`
       CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,
         type TEXT NOT NULL,
@@ -35,7 +35,7 @@ export async function POST() {
       );
     `);
     
-    db.run(sql`
+    await db.run(sql`
       CREATE TABLE IF NOT EXISTS agent_decisions (
         id TEXT PRIMARY KEY,
         transaction_id TEXT NOT NULL,
@@ -53,9 +53,9 @@ export async function POST() {
     `);
 
     // Clear existing data
-    db.run(sql`DELETE FROM agent_decisions`);
-    db.run(sql`DELETE FROM transactions`);
-    db.run(sql`DELETE FROM customers`);
+    await db.run(sql`DELETE FROM agent_decisions`);
+    await db.run(sql`DELETE FROM transactions`);
+    await db.run(sql`DELETE FROM customers`);
 
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);

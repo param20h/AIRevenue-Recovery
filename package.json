@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "@phosphor-icons/react": "^2.1.10",
     "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
