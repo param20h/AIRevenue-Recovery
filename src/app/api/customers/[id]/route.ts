@@ -18,10 +18,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     .orderBy(desc(transactions.createdAt));
 
   const decisions = await db.select().from(agentDecisions)
-    .where(
-      // get decisions for all of this customer's transactions
-      // We do this in JS since SQLite/libsql doesn't support subqueries easily here
-    ).orderBy(desc(agentDecisions.timestamp));
+    .orderBy(desc(agentDecisions.timestamp));
 
   const txIds = new Set(txs.map(t => t.id));
   const custDecisions = decisions.filter(d => txIds.has(d.transactionId));

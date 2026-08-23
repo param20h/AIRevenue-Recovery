@@ -210,7 +210,7 @@ export default function SummaryDashboard() {
                     contentStyle={{ background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', padding: '12px 16px' }}
                     itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 600, padding: 0 }}
                     labelStyle={{ color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em', marginBottom: '8px' }}
-                    formatter={(val: any, name: string) => [val, name === 'count' ? 'Cases' : 'Amount']}
+                    formatter={(val: any, name: any) => [val, name === 'count' ? 'Cases' : 'Amount']}
                   />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {data.failureBreakdown.map((_: any, i: number) => (

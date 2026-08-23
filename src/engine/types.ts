@@ -5,12 +5,14 @@ export type FailureReason =
   | 'card_declined'
   | '3ds_failure'
   | 'abandoned_checkout'
+  | 'overdue_invoice'
   | 'unknown';
 
 export type ActionType = 
   | 'AUTO_RETRY'
   | 'SMART_PAYMENT_LINK'
   | 'WHATSAPP_REMINDER'
+  | 'PROMISE_TO_PAY'
   | 'ESCALATE_TO_HUMAN'
   | 'NO_ACTION';
 
